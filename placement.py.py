@@ -1,43 +1,64 @@
 import numpy as np
 import pickle
 import streamlit as st
-from xgboost import XGBRegressor
 
-# Load trained model
-loaded_model = pickle.load(open('placement.sav', 'rb'))
+# Load the trained salary prediction model
+loaded_model = pickle.load(open('placement.sav', "rb"))
 
-def predict(input_data):
-    input_array = np.asarray(input_data).reshape(1, -1)
-    prediction = loaded_model.predict(input_array)
-    return prediction[0]
+# Define the prediction function
+def salary_prediction(input_data):
+    input_data_as_numpy_array = np.array(input_data)
+    input_data_reshaped = input_data_as_numpy_array.reshape(1, -1)
+    prediction = loaded_model.predict(input_data_reshaped)
+    return round(prediction[0], 2)
 
+# Streamlit app UI
 def main():
-    st.title("Salary Prediction App")
+    gender = {'Male': 1, 'Female': 0}
+    ssc_b = {'Central': 1, 'Others': 0}
+    hsc_b = {'Central': 1, 'Others': 0}
+    hsc_s = {'Commerce': 0, 'Science': 1, 'Arts': 2}
+    degree_t = {'Sci&Tech': 0, 'Comm&Mgmt': 1, 'Others': 2}
+    workex = {'Yes': 1, 'No': 0}
+    specialisation = {'Mkt&HR': 0, 'Mkt&Fin': 1}
 
-    # Numeric inputs
-    ssc_p = st.text_input("SSC Percentage")
-    hsc_p = st.text_input("HSC Percentage")
-    hsc_s = st.text_input("HSC Stream {'Commerce':0, 'Science':1, 'Arts':2}")
-    degree_p = st.text_input("Degree Percentage")
-    degree_t = st.text_input("Degree Type {'Sci&Tech':0, 'Comm&Mgmt':1, 'Others':2}")
-    workex = st.text_input("Work Experience {'No':0, 'Yes':1}")
-    etest_p = st.text_input("E-test Percentage")
-    specialisation = st.text_input("Specialisation {'Mkt&Fin':0, 'Mkt&HR':1}")
-    mba_p = st.text_input("MBA Percentage")
-    status = st.text_input("Status {'Placed':0, 'Not Placed':1}")
+    st.title('Placement Salary Prediction Web App')  
+
+    gender_input = st.selectbox("Select Gender", gender)
+    ssc_p = st.text_input("Enter SSC Percentage")
+    ssc_b_input = st.selectbox("Select SSC Board", ssc_b)
+    hsc_p = st.text_input("Enter HSC Percentage")
+    hsc_b_input = st.selectbox("Select HSC Board", hsc_b)
+    hsc_s_input = st.selectbox("Select HSC Stream", hsc_s)
+    degree_p = st.text_input("Enter Degree Percentage")
+    degree_t_input = st.selectbox("Select Degree Type", degree_t)
+    workex_input = st.selectbox("Work Experience", workex)
+    etest_p = st.text_input("Enter E-Test Percentage")
+    specialisation_input = st.selectbox("MBA Specialisation", specialisation)
+    mba_p = st.text_input("Enter MBA Percentage")
+
+    prediction_result = ''
 
     if st.button("Predict Salary"):
         try:
-            input_list = [
-                float(ssc_p), float(hsc_p), float(hsc_s), float(degree_p),
-                float(degree_t), float(workex), float(etest_p),
-                float(specialisation), float(mba_p), float(status)
+            input_data = [
+                gender[gender_input],
+                float(ssc_p),
+                ssc_b[ssc_b_input],
+                float(hsc_p),
+                hsc_b[hsc_b_input],
+                hsc_s[hsc_s_input],
+                float(degree_p),
+                degree_t[degree_t_input],
+                workex[workex_input],
+                float(etest_p),
+                specialisation[specialisation_input],
+                float(mba_p)
             ]
-            result = predict(input_list)
-            st.success(f"Predicted Salary: ₹ {result:.2f}")
-        except Exception as e:
-            st.error(f"Error: {e}")
+            prediction = salary_prediction(input_data)
+            st.success(f'Predicted Salary: ₹ {prediction}')
+        except ValueError:
+            st.error("Please enter valid numeric values in all fields.")
 
-# ✅ Correct main function check
 if __name__ == '__main__':
     main()
